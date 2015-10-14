@@ -33,16 +33,24 @@ public:
         unsigned long dim = point.size();
         assert( dim == min_point_.size() && dim == max_point_.size() );
 
-        for ( unsigned int i=0; i<dim; ++i ) {
+        for ( unsigned int i=0; i<dim; ++i )
+        {
             double x_min = min_point_[i];
             double x_max = max_point_[i];
             double x = point[i];
             if ( x < x_min ) {
                 sum_sq += ( x_min - x ) * (x_min - x);
             }
-            else if ( x > x_max ) {
+            else if ( x > x_max )
+            {
                 sum_sq += ( x_max - x ) * (x_max - x);
             }
+            else
+            {
+                sum_sq =0;
+            }
+
+
         }
         return sum_sq;
     }
