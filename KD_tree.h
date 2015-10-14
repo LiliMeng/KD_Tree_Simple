@@ -10,8 +10,6 @@
 
 using namespace std;
 
-
-
 class bounding_box
 {
 private:
@@ -298,10 +296,11 @@ bool KD_tree::query(const vector<double> & query_point, const int K,
     stack<KD_tree_node *> candidate_nodes;
     KD_tree_node * cur_node = root_;
     // travel to leaf node
-    while (cur_node) {
-        if (cur_node != root_) {
-            candidate_nodes.push(cur_node);
-        }
+    while (cur_node)
+    {
+
+        candidate_nodes.push(cur_node);
+
 
         if (cur_node->is_leaf_) {
             break;
@@ -324,6 +323,8 @@ bool KD_tree::query(const vector<double> & query_point, const int K,
 
     indices.resize(K);
     squared_distances.resize(K);
+    cout<<"number K"<<K<<endl;
+    cout<<"the size of K"<<distance_queue.size()<<endl;
     assert(distance_queue.size() == K);
 
     int num = K-1;
@@ -410,3 +411,4 @@ double KD_tree::distance_sq(const vector<double> & data0, const vector<double> &
 }
 
 #endif /* KD_TREE_H */
+
