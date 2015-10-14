@@ -97,7 +97,7 @@ private:
     // build and store data
     vector<vector<double> > data_;
     unsigned long dim_;
-    unsigned bin_num_;
+    unsigned max_leaf_size_;
     unsigned max_level_;
     KD_tree_node *root_;
 
@@ -106,7 +106,7 @@ public:
     KD_tree();
     ~KD_tree();
 
-    bool create_tree(const vector<vector<double> > & data, unsigned bin_num, unsigned max_level);
+    bool create_tree(const vector<vector<double> > & data, unsigned max_leaf_size, unsigned max_level);
     bool query(const vector<double> & query_point, const int K,
                vector<int> & indices,
                vector<double> & squared_distances) const;
@@ -153,12 +153,12 @@ KD_tree::~KD_tree()
 
 }
 
-bool KD_tree::create_tree(const vector<vector<double> >& data, unsigned bin_num, unsigned max_level)
+bool KD_tree::create_tree(const vector<vector<double> >& data, unsigned max_leaf_size, unsigned max_level)
 {
     assert(root_ == NULL);
 
     data_ = data;
-    bin_num_ = bin_num;
+    max_leaf_size_ = max_leaf_size;
     max_level_ = max_level;
     dim_ = data.front().size();
 
@@ -179,7 +179,7 @@ bool KD_tree::create_tree(const vector<vector<double> >& data, unsigned bin_num,
 bool KD_tree::build_tree(const vector<int> & indices, KD_tree_node* & node, unsigned level)
 {
     assert(node);
-    if(level >= max_level_ || indices.size() <=bin_num_)
+    if(level >= max_level_ || indices.size() <=max_leaf_size_)
     {
         node->is_leaf_ = true;
         node->level_ = level;
