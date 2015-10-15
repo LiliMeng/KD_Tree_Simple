@@ -6,30 +6,9 @@ using namespace std;
 
 int main(int argc, const char * argv[])
 {
-    /*
-    // test on random data
 
-    int N = 100;
     int K = 3;
-    int dim = 8;
 
-    vector<vector<double> > dataset;
-    for (int i = 0; i<N; i++) {
-        vector<double> data;
-        for (int j = 0; j<dim; j++) {
-            double v = rand()%256/256.0;
-            data.push_back(v);
-        }
-        dataset.push_back(data);
-    }
-
-    vector<double> query_point;
-    for (int j = 0; j<dim; j++) {
-        double v = rand()%256/256.0;
-        query_point.push_back(v);
-    }
-    */
-    int K = 3;
     vector<vector<double> > dataset;
     ReadData rd1("sample_data.txt");
     int N = rd1.get_num_of_elements();
@@ -45,31 +24,37 @@ int main(int argc, const char * argv[])
     query_point_dataset=rd2.allDataPointsVec;
     query_point=query_point_dataset[1];
 
+    KD_tree_node* root;
     KD_tree tree;
-    tree.create_tree(dataset, 100, 128);
-
+    tree.create_tree(dataset, 1, 128);
+   // tree.save_tree_to_file("KD_tree_storage1.txt");
+    //tree.read_tree_from_file("KD_tree_storage1.txt", root);
+   // tree.save_tree_to_file("KD_tree_storage2.txt");
 
     vector<int> indices;
     vector<double> squared_distances;
-    tree.query(query_point, K, indices, squared_distances);
+    tree.kNN_query(query_point, K, indices, squared_distances);
 
     for (int i = 0; i<indices.size(); i++) {
-        printf("index %d  distance is %f\n", indices[i], squared_distances[i]);
+        cout<<"index "<<indices[i]<<"\t"<<"distance is "<<squared_distances[i]<<endl;
     }
 
 
 
     // brute force
     vector<double> brute_force_distances;
-    for (int i = 0; i<N; i++) {
-        double dis = KD_tree::distance_sq(query_point, dataset[i]);
-        brute_force_distances.push_back(dis);
+    for (int i = 0; i< N; i++)
+    {
+        double dist = KD_tree::distance_sq(query_point, dataset[i]);
+        brute_force_distances.push_back(dist);
     }
 
     std::sort(brute_force_distances.begin(), brute_force_distances.end());
-    for (int i = 0; i<K; i++) {
-        printf("brute force distance is %f\n", brute_force_distances[i]);
+    for(int i = 0; i<K; i++)
+    {
+        cout<<"brute-force distance is "<<brute_force_distances[i]<<endl;
     }
+
 
 
 
