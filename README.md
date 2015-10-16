@@ -6,7 +6,7 @@
  Beis, J. S. and Lowe, D. G.  Shape indexing using approximate nearest-neighbor search in high-dimensional spaces.
  
  Presentation refer to:
- https://drive.google.com/file/d/0B40wM6zx6lFqZmotOVdSSWJoRUE/view?usp=sharing
+https://drive.google.com/file/d/0B40wM6zx6lFqUWVvOEJ4UHFSaTg/view?usp=sharing
  
  
  Running Method: 
