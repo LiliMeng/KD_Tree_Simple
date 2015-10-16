@@ -50,7 +50,7 @@ int main(int argc, const char * argv[])
 
 
     //tree.kNN_query(query_point, K, indices, squared_distances);
-    tree.bbf_kNN_query(query_point, K, indices, squared_distances,100);
+    tree.bbf_kNN_query(query_point, K, indices, squared_distances,1000);
 
 
     for (int i = 0; i<indices.size(); i++)
@@ -79,12 +79,16 @@ int main(int argc, const char * argv[])
         cout<<"Using Brute-Force method Search: The number "<<i+1<<" nearest neighbor index is  "<< brute_force_htable[brute_force_vec[i]]<<"\t"<<"The brute-force distance is "<<brute_force_vec[i]<<endl;
     }
 
-    /**Compare the KD-Tree with the Brute-Force Method**/
+    /**Compare the Query with the Brute-Force Method**/
     for (int i = 0; i<indices.size(); i++)
     {
         if(indices[i]==brute_force_htable[brute_force_vec[i]])
         {
-            cout<<"Comparing with the Brute-force method, the Exact K-Nearest Neighbour search by KD-Tree program is correct"<<endl;
+            cout<<"Comparing with the Brute-force method, the BBF approximate K-Nearest Neighbour search by KD-Tree program is correct"<<endl;
+        }
+        else
+        {
+            cout<<"Try to increase the max_epoch to let the approximate nearest neighbor search more accurate"<<endl;
         }
     }
 
