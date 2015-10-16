@@ -4,6 +4,18 @@
 
 using namespace std;
 
+//A brute force method to check the distances
+double distance_sq(const vector<double> & data0, const vector<double> & data1)
+{
+    assert(data0.size() == data1.size());
+    double sq = 0.0;
+    for (int i=0; i<data0.size(); i++)
+    {
+        double dif = data0[i]-data1[i];
+        sq +=dif*dif;
+    }
+    return sq;
+}
 
 
 int main(int argc, const char * argv[])
@@ -36,31 +48,45 @@ int main(int argc, const char * argv[])
     vector<int> indices;
     vector<double> squared_distances;
 
-     
+
     //tree.kNN_query(query_point, K, indices, squared_distances);
     tree.bbf_kNN_query(query_point, K, indices, squared_distances,100);
 
-    for (int i = 0; i<indices.size(); i++) {
-        cout<<"index "<<indices[i]<<"\t"<<"distance is "<<squared_distances[i]<<endl;
+
+    for (int i = 0; i<indices.size(); i++)
+    {
+        cout<<"Using BBF Search K Nearest Neigbour : The number "<<i+1<<" nearest neighbor index is  "<<indices[i]<<endl;
     }
-
-
 
     // brute force
-    vector<double> brute_force_distances;
+    unordered_map<double, int> brute_force_htable;
+    vector<double> brute_force_vec;
+
     for (int i = 0; i< N; i++)
     {
-        double dist = KD_tree::distance_sq(query_point, dataset[i]);
-        brute_force_distances.push_back(dist);
+        double dist = distance_sq(query_point, dataset[i]);
+
+        brute_force_htable.insert({dist, i});
+        brute_force_vec.push_back(dist);
     }
 
-    std::sort(brute_force_distances.begin(), brute_force_distances.end());
+
+    std::sort(brute_force_vec.begin(), brute_force_vec.end());
+
+
     for(int i = 0; i<K; i++)
     {
-        cout<<"brute-force distance is "<<brute_force_distances[i]<<endl;
+        cout<<"Using Brute-Force method Search: The number "<<i+1<<" nearest neighbor index is  "<< brute_force_htable[brute_force_vec[i]]<<"\t"<<"The brute-force distance is "<<brute_force_vec[i]<<endl;
     }
 
-
+    /**Compare the KD-Tree with the Brute-Force Method**/
+    for (int i = 0; i<indices.size(); i++)
+    {
+        if(indices[i]==brute_force_htable[brute_force_vec[i]])
+        {
+            cout<<"Comparing with the Brute-force method, the Exact K-Nearest Neighbour search by KD-Tree program is correct"<<endl;
+        }
+    }
 
 
 
