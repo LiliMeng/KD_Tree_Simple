@@ -8,5 +8,5 @@ A slimmed version of KD tree for k Nearest Neighbor search
  Beis, J. S. and Lowe, D. G.  Shape indexing using approximate nearest-neighbor search in high-dimensional spaces.
  
  
- Test Method: 
- Put data files, .h file, and .cpp file in one folder and run on the .cpp file
+ Running Method: 
+ Put data files, .h file, and .cpp file in one folder and run the .cpp file
