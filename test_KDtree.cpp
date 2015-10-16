@@ -27,9 +27,7 @@ int main(int argc, const char * argv[])
     KD_tree_node* root;
     KD_tree tree;
     tree.create_tree(dataset, 1, 128);
-   // tree.save_tree_to_file("KD_tree_storage1.txt");
-    //tree.read_tree_from_file("KD_tree_storage1.txt", root);
-   // tree.save_tree_to_file("KD_tree_storage2.txt");
+   
 
     vector<int> indices;
     vector<double> squared_distances;
