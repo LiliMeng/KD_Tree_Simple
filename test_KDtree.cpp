@@ -1,8 +1,10 @@
 #include <iostream>
 #include "KD_tree.h"
-#include "ReadData1.h"
+#include "ReadData.h"
 
 using namespace std;
+
+
 
 int main(int argc, const char * argv[])
 {
@@ -26,12 +28,17 @@ int main(int argc, const char * argv[])
 
     KD_tree_node* root;
     KD_tree tree;
-    tree.create_tree(dataset, 1, 128);
-   
+    tree.create_tree(dataset, 4, 128);
+    //tree.save_tree_to_file("KD_tree_storage1.txt");
+
+    tree.save_tree_to_file("KD_tree_storage2.txt");
 
     vector<int> indices;
     vector<double> squared_distances;
-    tree.kNN_query(query_point, K, indices, squared_distances);
+
+     
+    //tree.kNN_query(query_point, K, indices, squared_distances);
+    tree.bbf_kNN_query(query_point, K, indices, squared_distances,100);
 
     for (int i = 0; i<indices.size(); i++) {
         cout<<"index "<<indices[i]<<"\t"<<"distance is "<<squared_distances[i]<<endl;
@@ -59,3 +66,4 @@ int main(int argc, const char * argv[])
 
     return 0;
 }
+
