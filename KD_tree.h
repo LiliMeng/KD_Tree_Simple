@@ -1,6 +1,6 @@
 /**
  * File: KDTree.h
- * Author Lili Meng (lilimeng1103@gmail.com) mainly based on the code by Jimmy Chen(jhchen14@cs.ubc.ca)
+ * Author Lili Meng (lilimeng1103@gmail.com) mainly based on the kd-tree code by Jimmy Chen(jhchen14@cs.ubc.ca)
  * Thanks a lot for the fruitful discussion with Jimmy Chen, Victor Gan
  * ------------------------
  * Perform constructing trees, efficient exact query for k-nearest neighbors based on Bounded priority queue kd-tree,
