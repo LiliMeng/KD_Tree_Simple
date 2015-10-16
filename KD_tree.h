@@ -1,3 +1,18 @@
+/**
+ * File: KDTree.h
+ * Author Lili Meng (lilimeng1103@gmail.com) mainly based on the code by Jimmy Chen(jhchen14@cs.ubc.ca)
+ * Thanks a lot for the fruitful discussion with Jimmy Chen, Victor Gan
+ * ------------------------
+ * Perform constructing trees, efficient exact query for k-nearest neighbors based on Bounded priority queue kd-tree,
+ * Best-Bin-First(BBF) query for approximate k-nearest neighbors search.
+ * For more BBF query, please refer to
+ * Beis, J. S. and Lowe, D. G.  Shape indexing using approximate nearest-neighbor search in high-dimensional spaces.
+ *
+ * An interface representing a kd-tree in some number of dimensions. The tree
+ * can be constructed from a set of data and then queried for membership and
+ * nearest neighbors.
+ **/
+
 #ifndef KD_tree_H
 #define KD_tree_H
 
@@ -14,15 +29,7 @@
 
 using namespace std;
 
-/// key value pair. Not use the std::pair because there is default
-/// "<" operator overloading for it and it is too heavy for operation.
-template <class T, class V = double>
-struct KeyValue
-{
-    T key;
-    V value;
-    KeyValue(const T k, const V v) : key(k), value(v){}
-};
+
 
 class Bounding_box
 {
@@ -111,7 +118,38 @@ public:
     {
         return this->distance_ < other.distance_;
     }
+
+    bool operator > (const distance_index & other) const
+    {
+        return this->distance_ > other.distance_;
+    }
+
 };
+
+class TreeNode_distance
+{
+public:
+    KD_tree_node* node_;
+    double distance_;
+
+    TreeNode_distance(KD_tree_node* node, double distance)
+    {
+        node_=node;
+        distance_ = distance;
+    }
+
+    bool operator < (const TreeNode_distance & other) const
+    {
+        return this->distance_ < other.distance_;
+    }
+
+     bool operator > (const TreeNode_distance & other) const
+    {
+        return this->distance_ > other.distance_;
+    }
+
+};
+
 
 class KD_tree
 {
@@ -126,15 +164,13 @@ public:
                vector<int> & indices,
                vector<double> & squared_distances) const;
 
-    bool bbf_kNN_query(const vector<double> & query_point, const int K,
+    bool bbf_kNN_query(const vector<double> query_point, const int K,
                vector<int> & indices,
                vector<double> & squared_distances, size_t maxEpoch) const;
 
-private:
 
-    typedef KeyValue<KD_tree_node*> node_bind;
-    typedef priority_queue<node_bind, vector<node_bind>, greater<node_bind> > node_minPQ;
-    typedef KeyValue<vector<double>> point_bind;
+private:
+    typedef priority_queue<TreeNode_distance, vector<TreeNode_distance>, greater<TreeNode_distance>> min_PQ;
     // build and store data
     vector<vector<double> > data_;
     unsigned long dim_;
@@ -165,6 +201,7 @@ private:
                            priority_queue<distance_index> & priority_points,
                            double & max_distance, const KD_tree_node * cur_node) const;
 
+    KD_tree_node* bbf_explore_to_leaf(vector<double> query_point, KD_tree_node* root, min_PQ& unexplored_minPQ) const;
 
     Bounding_box build_bounding_box(const vector<int> & indices) const;
 
@@ -327,6 +364,7 @@ void KD_tree::save_tree_helper(FILE *pf, KD_tree_node* node)
         return;
     }
     // write current node
+   // fout<<node->level_<<"\t"<<node->is_leaf_<<"\t\t"<<node->split_dim_<<"\t\t"<<node->split_value_<<endl;
     fprintf(pf, "%u\t %d\t\t %d\t\t %lf\n", node->level_, (int)node->is_leaf_, (int)node->split_dim_, node->split_value_);
 
     save_tree_helper(pf, node->left_node_);
@@ -532,8 +570,8 @@ bool KD_tree::explore_leaf_node(const vector<double>& query_point, const int K,
     }
     return true;
 }
-/*
-const KD_tree_node* KD_tree::explore_to_leaf(const vector<double>& query_point, const KD_tree_node* root,  node_minPQ& minPQ)
+
+KD_tree_node* KD_tree::bbf_explore_to_leaf(vector<double> query_point, KD_tree_node* root,  min_PQ& unexplored_minPQ) const
 {
     KD_tree_node* unexplored_node;   // unexplored KD_tree_node*
     KD_tree_node* cur_node = root;
@@ -551,86 +589,94 @@ const KD_tree_node* KD_tree::explore_to_leaf(const vector<double>& query_point, 
         // go to a child and preserve the other
         if(query_point[dim] < split_value)
         {
-            unexplored_node = cur_node->right;
-            cur_node = cur_node->left;
+            unexplored_node = cur_node->right_node_;
+            cur_node = cur_node->left_node_;
         }
         else
         {
-            unexplored_node = cur_node->left;
-            cur_node = cur_node->right;
+            unexplored_node = cur_node->left_node_;
+            cur_node = cur_node->right_node_;
         }
 
-        if (unexplored_node!=NULL)
+        if(unexplored_node!=NULL)
         {
-            minPQ.push(node_bind(unexplored_node, fabs(query_point[unexplored_node->split_dim_]-unexplored->data_index_[unexplored_node->split_dim_]));
+            TreeNode_distance di(unexplored_node, fabs(query_point[unexplored_node->split_dim_]-unexplored_node->split_value_));
+            unexplored_minPQ.push(di);
         }
 
     }
 
     return cur_node;
 }
-*/
-/*
-bool KD_tree::bbf_kNN_query(const vector<double> & query_point, const int K,
-               vector<int> & indices,
-               vector<double> & squared_distances, size_t max_epoch) const;
+
+
+bool KD_tree::bbf_kNN_query(const vector<double>  query_point, const int K, vector<int> & indices, vector<double> & squared_distances, size_t max_epoch) const
 {
 
     size_t epoch = 0;
 
+    double max_distance = numeric_limits<double>::max();
+
     KD_tree_node* cur_node = root_;
+
+    min_PQ priority_unexplored_points;
+
+    TreeNode_distance di(root_, 0);
+    priority_unexplored_points.push(di);
 
     priority_queue<distance_index> priority_points;
 
-    double currentBest = numeric_limits<double>::max();
-
-    double dist = 0;
-
-    priority_points.push(root_, 0);
-
-    while(!priority_points.empty() && epoch < maxEpoch)
+    while(!priority_unexplored_points.empty() && epoch < max_epoch)
     {
-        cur_node = priority_points.top().key;
-        priority_points.pop();
+        TreeNode_distance td=priority_unexplored_points.top();
+        cur_node = td.node_;
+        priority_unexplored_points.pop();
 
         //find leaf node and push unexplored to minPQ
-        currentNode = exploreToLeaf(key, currentNode, priority_points);
+        cur_node = bbf_explore_to_leaf(query_point, cur_node, priority_unexplored_points);
 
-        for(int i = 0; i<cur_node->)
+        // find k nearest neighbors
 
-    dist = Distance(currentNode->key, key);
+        for(int i=0; i<cur_node->data_index_.size(); i++)
+        {
+            int index = cur_node->data_index_[i];
+            const vector<double> & point = data_[index];
+            double dist_sq = KD_tree::distance_sq(point, query_point);
 
-    if(dist < currentBest)
-    {
-        if(kNearestPQ.size()==k)
-        {
-            //update the currentBest;
-            kNearestPQ.pop();
-            kNearestPQ.enqueue(currentNode, Distance(currentNode->key, key));
-            currentBest = kNearestPQ.best();
+            if(priority_points.size() < K || dist_sq < max_distance)
+            {
+                distance_index di(index, dist_sq);
+                priority_points.push(di);
+                if(priority_points.size() > K)
+                {
+                    priority_points.pop();
+                }
+                max_distance = priority_points.top().distance_;
+            }
         }
-        else if(kNearestPQ.size() == k-1)
-        {
-            kNearestPQ.enqueue(currentNode, Distance(currentNode->key, key));
-            currentBest = kNearestPQ.best();
-        }
-        else
-        {
-            kNearestPQ.enqueue(currentNode, Distance(currentNode->key, key));
-        }
-    }
-    }
+
     ++epoch;
 
-    while(!kNearestPQ.empty())
-    {
-        result.push_back((kNearestPQ.dequeueMin())->value);
     }
 
-    return result;
 
+    indices.resize(K);
+    squared_distances.resize(K);
+    assert(priority_points.size()==K);
 
-}*/
+    int num = K -1;
+    while(!priority_points.empty())
+    {
+        distance_index top = priority_points.top();
+        priority_points.pop();
+        indices[num] = top.index_;
+        squared_distances[num] = top.distance_;
+        num--;
+    }
+
+    return true;
+}
+
 //For brute-force comparison
 double KD_tree::distance_sq(const vector<double> & data0, const vector<double> & data1)
 {
