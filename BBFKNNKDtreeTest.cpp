@@ -1,6 +1,6 @@
 #include <iostream>
 #include "KD_tree.h"
-#include "ReadData.h"
+#include "ReadData1.h"
 
 using namespace std;
 
