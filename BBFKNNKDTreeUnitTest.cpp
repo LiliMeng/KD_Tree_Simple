@@ -1,6 +1,7 @@
 /**
- * File: BBFKNNKDTreeUnitTest.cpp
- * Author Lili Meng (lilimeng1103@gmail.com) based on the code by Keith Schwarz (htiek@cs.stanford.edu)
+ * File: kNNKDTreeUnitTest.cpp
+ * Author Lili Meng (lilimeng1103@gmail.com) based on the test-harness.cpp code by Keith Schwarz (htiek@cs.stanford.edu)
+ * Test CreateKDTree, ExactKNearestNeighbor and ApproximateKNearestNeighbor
  */
 
 #include <iostream>
@@ -11,11 +12,12 @@ using namespace std;
 
 /* These flags control which tests will be run.*/
 
-#define KDTreeTestEnabled          1 // Step one checks
 
-//#define ExactKNearestNeighborTestEnabled      0 // Step two checks
+#define CreateKDTreeTestEnabled          1 // Step one checks
 
-//#define ApproximateKNearestNeighborTestEnabled      0 // Step two checks
+#define ExactKNearestNeighborTestEnabled      1 // Step two checks
+
+#define ApproximateKNearestNeighborTestEnabled      1 // Step three checks
 
 /* Utility function that pauses until the user hits ENTER. */
 void PressEnterToContinue() {
@@ -83,9 +85,22 @@ void EndTest() {
 }
 
 
+//A brute force method to check the distances
+double distance_sq(const vector<double> & data0, const vector<double> & data1)
+{
+    assert(data0.size() == data1.size());
+    double sq = 0.0;
+    for (int i=0; i<data0.size(); i++)
+    {
+        double dif = data0[i]-data1[i];
+        sq +=dif*dif;
+    }
+    return sq;
+}
+
 /* Basic test: Can we build the tree and look up the elements it contains? */
-void KDTreeTest() try {
-#if KDTreeTestEnabled
+void CreateKDTreeTest() try {
+#if CreateKDTreeTestEnabled
   PrintBanner("KDTree Test");
 
   /* Construct the KDTree. */
@@ -99,9 +114,9 @@ void KDTreeTest() try {
   KD_tree kd;
   CheckCondition(kd.empty(),   "New KD tree is empty.");
    /* Add some elements. */
-  kd.create_tree(dataset, 1, dim);
+  bool completedkd=kd.create_tree(dataset, 4);
 
-  CheckCondition(true, "KDTree construction completed.");
+  CheckCondition(completedkd==true, "KDTree construction completed.");
 
   /* Check basic properties of the KDTree. */
   CheckCondition(kd.dimension() == 128, "Dimension is 128.");
@@ -110,51 +125,157 @@ void KDTreeTest() try {
   CheckCondition(kd.size() == 1000, "After adding 1000 elements, KDTree has size 1000.");
   CheckCondition(!kd.empty(),    "After adding  elements, KDTree is not empty.");
 
-  /* Make sure that the elements we built the tree out of are still there.
-  CheckCondition(kd.contains(PointFromRange<128>(dataPoints[0], dataPoints[0] + 128)), "New KD tree has element zero.");
-  CheckCondition(kd.contains(PointFromRange<128>(dataPoints[1], dataPoints[1] + 128)), "New KD tree has element one.");
-  CheckCondition(kd.contains(PointFromRange<128>(dataPoints[2], dataPoints[2] + 128)), "New KD tree has element two.");
-
-  /* Make sure that the values of these points are correct.
-  for (size_t i = 0; i < row1; ++i)
-    CheckCondition(kd.at(PointFromRange<128>(dataPoints[i], dataPoints[i] + 128)) == i, "New KD tree has correct values."); */
 
   EndTest();
 #else
-  TestDisabled("BasicKDTreeTest");
+  TestDisabled("KDTreeTest");
 #endif
 } catch (const exception& e) {
   FailTest(e);
 }
 
+void ExactKNearestNeighborTest() try {
+#if ExactKNearestNeighborTestEnabled
+  PrintBanner("Exact k Nearest Neighbor Test");
+
+    int K = 3;
+
+    vector<vector<double> > dataset;
+    ReadData rd1("sample_data.txt");
+    int N = rd1.get_num_of_elements();
+    int dim = rd1.get_num_of_dimensions();
+    dataset=rd1.allDataPointsVec;
+
+    //query_point
+    vector<double> query_point;
+    vector<vector<double> > query_point_dataset;
+    ReadData rd2("query_points.txt");
+    int N2 = rd2.get_num_of_elements();
+    int dim2 = rd2.get_num_of_dimensions();
+    query_point_dataset=rd2.allDataPointsVec;
+    query_point=query_point_dataset[1];
+
+    KD_tree_node* root;
+    KD_tree tree;
+    tree.create_tree(dataset, 4);
+
+
+    vector<int> indices;
+    vector<double> squared_distances;
+    int max_epoch = 1000;
+    tree.bbf_kNN_query(query_point, K, indices, squared_distances, max_epoch);
+
+
+    // brute force
+    unordered_map<double, int> brute_force_htable;
+    vector<double> brute_force_vec;
+
+    for (int i = 0; i< N; i++)
+    {
+        double dist = distance_sq(query_point, dataset[i]);
+
+        brute_force_htable.insert({dist, i});
+        brute_force_vec.push_back(dist);
+    }
+
+    std::sort(brute_force_vec.begin(), brute_force_vec.end());
+
+    /**Compare the BBF Search with the Brute-Force Method */
+    for (int i = 0; i< K; i++)
+    {
+        CheckCondition( indices[i]==brute_force_htable[brute_force_vec[i]], "Comparing with the Brute-force method, the Exact K-Nearest Neighbour search by KD-Tree program is correct");
+    }
+
+  EndTest();
+#else
+  TestDisabled("ExactKNearestNeighborTest");
+#endif
+} catch (const exception& e) {
+  FailTest(e);
+}
+
+
+void ApproximateKNearestNeighborTest() try {
+#if ApproximateKNearestNeighborTestEnabled
+  PrintBanner("Approximate k Nearest Neighbor Test");
+
+    int K = 3;
+
+    vector<vector<double> > dataset;
+    ReadData rd1("sample_data.txt");
+    int N = rd1.get_num_of_elements();
+    int dim = rd1.get_num_of_dimensions();
+    dataset=rd1.allDataPointsVec;
+
+    //query_point
+    vector<double> query_point;
+    vector<vector<double> > query_point_dataset;
+    ReadData rd2("query_points.txt");
+    int N2 = rd2.get_num_of_elements();
+    int dim2 = rd2.get_num_of_dimensions();
+    query_point_dataset=rd2.allDataPointsVec;
+    query_point=query_point_dataset[1];
+
+    KD_tree_node* root;
+    KD_tree tree;
+    tree.create_tree(dataset, 4);
+
+
+    vector<int> indices;
+    vector<double> squared_distances;
+    tree.kNN_query(query_point, K, indices, squared_distances);
+
+
+    // brute force
+    unordered_map<double, int> brute_force_htable;
+    vector<double> brute_force_vec;
+
+    for (int i = 0; i< N; i++)
+    {
+        double dist = distance_sq(query_point, dataset[i]);
+
+        brute_force_htable.insert({dist, i});
+        brute_force_vec.push_back(dist);
+    }
+
+    std::sort(brute_force_vec.begin(), brute_force_vec.end());
+
+    /**Compare the BBF Search with the Brute-Force Method, In testing, the max_epoch was set 1000 so that it's almost the exact search */
+    for (int i = 0; i< K; i++)
+    {
+        CheckCondition( indices[i]==brute_force_htable[brute_force_vec[i]], "Comparing with the Brute-force method, the Approximate K-Nearest Neighbour search by KD-Tree program is correct");
+    }
+
+  EndTest();
+#else
+  TestDisabled("ExactKNearestNeighborTest");
+#endif
+} catch (const exception& e) {
+  FailTest(e);
+}
+
+
 int main() {
+  /* Step One Tests */
+  CreateKDTreeTest();
+
   /* Step Two Tests */
-  KDTreeTest();
+  ExactKNearestNeighborTest();
+
+  /* Step Three Tests */
+  ApproximateKNearestNeighborTest();
 
 
-  /* Step Three Tests
-  NearestNeighborTest();
-  MoreNearestNeighborTest();
 
-  /* Step Four Tests
-  BasicCopyTest();
-  ModerateCopyTest();*/
+#if (CreateKDTreeTestEnabled && \
+     ExactKNearestNeighborTestEnabled &&\
+     ApproximateKNearestNeighborTestEnabled)
 
-#if (KDTreeTestEnabled)
-     /*ModerateKDTreeTestEnabled && \
-     HarderKDTreeTestEnabled &&   \
-     EdgeCaseKDTreeTestEnabled && \
-     MutatingKDTreeTestEnabled && \
-     ThrowingKDTreeTestEnabled &&  \
-     ConstKDTreeTestEnabled && \
-     NearestNeighborTestEnabled &&  \
-     MoreNearestNeighborTestEnabled && \
-     BasicCopyTestEnabled && \
-     ModerateCopyTestEnabled) */
-  cout << "All tests completed!  If they passed, you should be good to go!" << endl << endl;
+  cout << "All tests completed!  UberATC and Roboticists, I am coming!" << endl << endl;
 #else
   cout << "Not all tests were run.  Enable the rest of the tests, then run again." << endl << endl;
 #endif
 
   PressEnterToContinue();
 }
+
