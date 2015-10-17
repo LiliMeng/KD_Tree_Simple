@@ -271,7 +271,7 @@ int main() {
      ExactKNearestNeighborTestEnabled &&\
      ApproximateKNearestNeighborTestEnabled)
 
-  cout << "All tests completed! Thank you for your patience! UberATC and Roboticists, I am coming!" << endl << endl;
+  cout << "All tests completed! Thank you for your patience!" << endl << endl;
 #else
   cout << "Not all tests were run.  Enable the rest of the tests, then run again." << endl << endl;
 #endif
