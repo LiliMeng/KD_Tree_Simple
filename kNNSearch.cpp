@@ -72,6 +72,7 @@ int main(int argc, const char * argv[])
 
     }
 
+    cout<<"The required application 2 has been successful, thank you!"<<endl;
 
     return 0;
 }
