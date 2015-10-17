@@ -32,7 +32,7 @@ int main(int argc, const char * argv[])
 
     KD_tree_node* root;
     KD_tree tree;
-    int max_leaf_size =1;
+    int max_leaf_size =4;
     tree.create_tree(dataset,max_leaf_size);
 
 
@@ -53,7 +53,7 @@ int main(int argc, const char * argv[])
 
     }
 
-
+    /** BBF Approximate kNN Search **/
     cout<<"--------------------------------------------------------------------------------"<<endl;
     cout<<"--------------------------------------------------------------------------------"<<endl;
     cout<<"--------------------------------------------------------------------------------"<<endl;
@@ -61,6 +61,7 @@ int main(int argc, const char * argv[])
 
     for(int i=0; i<query_point_dataset.size(); i++)
     {
+        /** If the max_epoch is equal or larger than the size of all leaves, the result is the same with the exact kNN search**/
         int max_epoch=1000;
         tree.bbf_kNN_query(query_point_dataset[i], K, indices, squared_distances, max_epoch);
 
