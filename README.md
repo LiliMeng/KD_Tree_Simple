@@ -18,8 +18,13 @@ https://drive.google.com/file/d/0B40wM6zx6lFqUWVvOEJ4UHFSaTg/view?usp=sharing
 
 Welcome to run the following .cpp files 
 
-PrintAllDataID.cpp            Print out all data ID from a simple text file
 
 KNNKDTreeUnitTest.cpp      Test CreateKDTree, ExactKNearestNeighbor and ApproximateKNearestNeighbor
 
 LoadPointsBuildSaveTree.cpp  The required application 1: Load points from a simple text file, build a KD Tree and save the KD Tree to disk
+
+kNNSearch.cpp     Read a simple text fle and reports the top 3 nearest neighbors using both exact search and BBF approximate search
+
+
+PrintAllDataID.cpp            Print out all data ID from a simple text file
+
