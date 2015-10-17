@@ -16,4 +16,7 @@ https://drive.google.com/file/d/0B40wM6zx6lFqUWVvOEJ4UHFSaTg/view?usp=sharing
  Running Method: 
  Put all files( data files, .h file, and .cpp file)in one folder and run the .cpp file
 
-PrintDataID.cpp   Print out the ID of the point where the ID is the row in the original file(0-based)
+Welcome to run the following .cpp files 
+
+PrintDataID.cpp            Print out the ID of the point where the ID is the row in the original file(0-based)
+KNNKDTreeUnitTest.cpp      Test CreateKDTree, ExactKNearestNeighbor and ApproximateKNearestNeighbor
