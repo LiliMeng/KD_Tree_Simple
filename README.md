@@ -21,3 +21,5 @@ Welcome to run the following .cpp files
 PrintDataID.cpp            Print out the ID of the point where the ID is the row in the original file(0-based)
 
 KNNKDTreeUnitTest.cpp      Test CreateKDTree, ExactKNearestNeighbor and ApproximateKNearestNeighbor
+
+LoadPointsBuildSaveTree.cpp  The required application 1: Load points from a simple text file, build a KD Tree and save the KD Tree to disk
