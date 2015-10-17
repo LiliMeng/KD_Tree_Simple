@@ -18,7 +18,7 @@ https://drive.google.com/file/d/0B40wM6zx6lFqUWVvOEJ4UHFSaTg/view?usp=sharing
 
 Welcome to run the following .cpp files 
 
-PrintDataID.cpp            Print out the ID of the point where the ID is the row in the original file(0-based)
+PrintAllDataID.cpp            Print out all data ID from a simple text file
 
 KNNKDTreeUnitTest.cpp      Test CreateKDTree, ExactKNearestNeighbor and ApproximateKNearestNeighbor
 
