@@ -1,6 +1,6 @@
 /**
  * File: KDTree.h
- * Author Lili Meng (lilimeng1103@gmail.com) mainly based on the kd-tree code by Jimmy Chen(jhchen14@cs.ubc.ca)
+ * Author Lili Meng (lilimeng1103@gmail.com) based on part of the KD tree code by Jimmy Chen.
  * Thanks a lot for the fruitful discussion with Jimmy Chen, Victor Gan
  * ------------------------
  * Perform constructing trees, efficient exact query for k-nearest neighbors based on Bounded priority queue kd-tree,
@@ -26,6 +26,7 @@
 #include <iostream>
 #include <unordered_map>
 #include <stdio.h>
+#include <math.h>
 
 using namespace std;
 
@@ -79,11 +80,10 @@ public:
 class KD_tree_node
 {
 public:
+    int level_;
     int split_dim_;
     double split_value_;
     bool is_leaf_;
-    int level_;
-    int index_;
     Bounding_box box_;
 
     KD_tree_node *left_node_;
@@ -93,6 +93,7 @@ public:
 
     KD_tree_node()
     {
+        level_ = 0;
         split_dim_ = 0;
         split_value_ = 0.0;
         is_leaf_ = false;
@@ -156,9 +157,14 @@ class KD_tree
 public:
     KD_tree();
     ~KD_tree();
+    size_t dimension() const;
+    size_t size() const;
+
 
     bool read_tree_from_file(const char* file_name, KD_tree_node* &root);
-    bool create_tree(const vector<vector<double> > & data, unsigned max_leaf_size, unsigned max_level);
+    bool empty() const;
+
+    bool create_tree(const vector<vector<double> > & data, unsigned max_leaf_size);
     bool save_tree_to_file(const char* file_name);
     bool kNN_query(const vector<double> & query_point, const int K,
                vector<int> & indices,
@@ -166,14 +172,14 @@ public:
 
     bool bbf_kNN_query(const vector<double> query_point, const int K,
                vector<int> & indices,
-               vector<double> & squared_distances, size_t maxEpoch) const;
+               vector<double> & squared_distances, size_t max_searched_bin_number) const;
 
 
 private:
     typedef priority_queue<TreeNode_distance, vector<TreeNode_distance>, greater<TreeNode_distance>> min_PQ;
     // build and store data
     vector<vector<double> > data_;
-    unsigned long dim_;
+    size_t dim_;
     unsigned max_leaf_size_;
     unsigned max_level_;
     KD_tree_node *root_;
@@ -222,6 +228,26 @@ KD_tree::~KD_tree()
 
 }
 
+bool KD_tree::empty() const
+{
+    if(data_.size()==0)
+    return true;
+    else
+    return false;
+}
+
+size_t KD_tree::dimension() const {
+
+    if(!empty())
+    return data_[0].size();
+}
+
+size_t KD_tree::size() const {
+    if(!empty())
+    return data_.size();
+}
+
+
 void KD_tree::read_tree_from_file_helper(FILE *pf, KD_tree_node * & node)
 {
     char lineBuf[1024] = {NULL};
@@ -239,7 +265,8 @@ void KD_tree::read_tree_from_file_helper(FILE *pf, KD_tree_node * & node)
     assert(node);
     int is_leaf = 0;
 
-    sscanf(lineBuf, "%u\t %d\t\t %d\t\t %lf\n", &node->level_, &node->is_leaf_, &node->split_dim_, &node->split_value_);
+    sscanf(lineBuf, "%u\t %u\t\t %d\t %d\t\t %lf\n", node->level_, node->data_index_[0], node->is_leaf_, (int)node->split_dim_, node->split_value_);
+
     node->is_leaf_ = (is_leaf == 1);
 
     node->left_node_ = NULL;
@@ -268,13 +295,13 @@ bool KD_tree::read_tree_from_file(const char* file_name, KD_tree_node * & root)
     return true;
 }
 
-bool KD_tree::create_tree(const vector<vector<double> >& data, unsigned max_leaf_size, unsigned max_level)
+bool KD_tree::create_tree(const vector<vector<double> >& data, unsigned max_leaf_size)
 {
     assert(root_ == NULL);
 
     data_ = data;
     max_leaf_size_ = max_leaf_size;
-    max_level_ = max_level;
+    max_level_ = ceil(log2(data.size()));
     dim_ = data.front().size();
 
     vector<int> indices;
@@ -365,7 +392,18 @@ void KD_tree::save_tree_helper(FILE *pf, KD_tree_node* node)
     }
     // write current node
    // fout<<node->level_<<"\t"<<node->is_leaf_<<"\t\t"<<node->split_dim_<<"\t\t"<<node->split_value_<<endl;
-    fprintf(pf, "%u\t %d\t\t %d\t\t %lf\n", node->level_, (int)node->is_leaf_, (int)node->split_dim_, node->split_value_);
+
+    if(node->is_leaf_==false)
+    {
+        fprintf(pf, "%u\t %s\t\t %d\t %d\t\t %lf\n", node->level_, "NA", (int)node->is_leaf_, (int)node->split_dim_, node->split_value_);
+    }
+    else
+    {
+        for(int i=0; i<node->data_index_.size(); i++)
+        {
+             fprintf(pf, "%u\t %u\t\t %d\t %d\t\t %lf\n", node->level_, node->data_index_[i], (int)node->is_leaf_, (int)node->split_dim_, node->split_value_);
+        }
+    }
 
     save_tree_helper(pf, node->left_node_);
     save_tree_helper(pf, node->right_node_);
@@ -380,7 +418,7 @@ bool KD_tree::save_tree_to_file(const char* file_name)
         return false;
     }
 
-    fprintf(pf, "level_\t is_leaf_\t split_dim_\t split_value_\n");
+    fprintf(pf, "Level\t dataIndex\t isLeaf\t split_dim_\t split_value_\t\n");
 
     save_tree_helper(pf, root_);
     fclose(pf);
@@ -610,7 +648,7 @@ KD_tree_node* KD_tree::bbf_explore_to_leaf(vector<double> query_point, KD_tree_n
 }
 
 
-bool KD_tree::bbf_kNN_query(const vector<double>  query_point, const int K, vector<int> & indices, vector<double> & squared_distances, size_t max_epoch) const
+bool KD_tree::bbf_kNN_query(const vector<double>  query_point, const int K, vector<int> & indices, vector<double> & squared_distances, size_t max_searched_bin_number) const
 {
 
     size_t epoch = 0;
@@ -626,7 +664,7 @@ bool KD_tree::bbf_kNN_query(const vector<double>  query_point, const int K, vect
 
     priority_queue<distance_index> priority_points;
 
-    while(!priority_unexplored_points.empty() && epoch < max_epoch)
+    while(!priority_unexplored_points.empty() && epoch < max_searched_bin_number)
     {
         TreeNode_distance td=priority_unexplored_points.top();
         cur_node = td.node_;
