@@ -1,5 +1,5 @@
 /**
- * File: kNNKDTreeUnitTest.cpp
+ * File: KNNKDTreeUnitTest.cpp
  * Author Lili Meng (lilimeng1103@gmail.com) based on the test-harness.cpp code by Keith Schwarz (htiek@cs.stanford.edu)
  * Test CreateKDTree, ExactKNearestNeighbor and ApproximateKNearestNeighbor
  */
@@ -51,7 +51,7 @@ void DoCheckCondition(bool expr, const string& rationale, const string& file, in
 
 /* Reports that an unexpected error occurred that caused a test to fail. */
 void FailTest(const exception& e) {
-    cerr << "TEST FAILED: Unexpected exception: " <<e.what() << endl;
+    cerr << "Please be more patient, TEST FAILED: Unexpected exception: " <<e.what() << endl;
     PressEnterToContinue();
 }
 
@@ -80,7 +80,7 @@ void TestDisabled(const string& header) {
 
 /* Utility function to signal the end of a test. */
 void EndTest() {
-  cout << "== end of test: press ENTER to continue ==" << endl;
+  cout << "== end of test: Thank you! press ENTER to continue ==" << endl;
   PressEnterToContinue();
 }
 
@@ -271,11 +271,10 @@ int main() {
      ExactKNearestNeighborTestEnabled &&\
      ApproximateKNearestNeighborTestEnabled)
 
-  cout << "All tests completed!  UberATC and Roboticists, I am coming!" << endl << endl;
+  cout << "All tests completed! Thank you for your patience! UberATC and Roboticists, I am coming!" << endl << endl;
 #else
   cout << "Not all tests were run.  Enable the rest of the tests, then run again." << endl << endl;
 #endif
 
   PressEnterToContinue();
 }
-
