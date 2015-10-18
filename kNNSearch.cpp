@@ -70,7 +70,7 @@ int main(int argc, const char * argv[])
 
         for (int j = 0; j<K; j++)
         {
-            cout<<"For the number row  "<<i<<"  query point, Using Exact kNN Search 3 Nearest Neigbour : The number "<<j+1<<" nearest neighbor index is  "<<indices2[j]<<endl;
+            cout<<"For the number row  "<<i<<"  query point, Using BBF approximate kNN Search 3 Nearest Neigbour : The number "<<j+1<<" nearest neighbor index is  "<<indices2[j]<<endl;
         }
 
     }
