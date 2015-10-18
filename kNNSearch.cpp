@@ -36,22 +36,25 @@ int main(int argc, const char * argv[])
     tree.create_tree(dataset,max_leaf_size);
 
 
-    vector<int> indices;
-    vector<double> squared_distances;
+    vector<int> indices1;
+    vector<double> squared_distances1;
 
     /** Exact kNN Search **/
     cout<<"-------------------------------------------------------------------------------"<<endl;
     cout<<"*********Using Exact k Nearest Neighbor Search, The following are Results******"<<endl;
     for(int i=0; i<query_point_dataset.size(); i++)
     {
-        tree.kNN_query(query_point_dataset[i], K, indices, squared_distances);
+        tree.kNN_query(query_point_dataset[i], K, indices1, squared_distances1);
 
         for (int j = 0; j<K; j++)
         {
-            cout<<"For the number row  "<<i<<"  query point, Using Exact kNN Search 3 Nearest Neigbour : The number "<<j+1<<" nearest neighbor index is  "<<indices[j]<<endl;
+            cout<<"For the number row  "<<i<<"  query point, Using Exact kNN Search 3 Nearest Neigbour : The number "<<j+1<<" nearest neighbor index is  "<<indices1[j]<<endl;
         }
 
     }
+
+    vector<int> indices2;
+    vector<double> squared_distances2;
 
     /** BBF Approximate kNN Search **/
     cout<<"--------------------------------------------------------------------------------"<<endl;
@@ -62,12 +65,12 @@ int main(int argc, const char * argv[])
     for(int i=0; i<query_point_dataset.size(); i++)
     {
         /** If the max_epoch is equal or larger than the size of all leaves, the result is the same with the exact kNN search**/
-        int max_epoch=1000;
-        tree.bbf_kNN_query(query_point_dataset[i], K, indices, squared_distances, max_epoch);
+        int max_searched_leaf_number=1000;
+        tree.bbf_kNN_query(query_point_dataset[i], K, indices2, squared_distances2, max_searched_leaf_number);
 
         for (int j = 0; j<K; j++)
         {
-            cout<<"For the number row  "<<i<<"  query point, Using Exact kNN Search 3 Nearest Neigbour : The number "<<j+1<<" nearest neighbor index is  "<<indices[j]<<endl;
+            cout<<"For the number row  "<<i<<"  query point, Using Exact kNN Search 3 Nearest Neigbour : The number "<<j+1<<" nearest neighbor index is  "<<indices2[j]<<endl;
         }
 
     }
