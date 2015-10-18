@@ -172,7 +172,7 @@ public:
 
     bool bbf_kNN_query(const vector<double> query_point, const int K,
                vector<int> & indices,
-               vector<double> & squared_distances, size_t max_searched_bin_number) const;
+               vector<double> & squared_distances, size_t max_searched_leaf_number) const;
 
 
 private:
@@ -641,14 +641,13 @@ KD_tree_node* KD_tree::bbf_explore_to_leaf(vector<double> query_point, KD_tree_n
             TreeNode_distance di(unexplored_node, fabs(query_point[unexplored_node->split_dim_]-unexplored_node->split_value_));
             unexplored_minPQ.push(di);
         }
-
     }
 
     return cur_node;
 }
 
 
-bool KD_tree::bbf_kNN_query(const vector<double>  query_point, const int K, vector<int> & indices, vector<double> & squared_distances, size_t max_searched_bin_number) const
+bool KD_tree::bbf_kNN_query(const vector<double>  query_point, const int K, vector<int> & indices, vector<double> & squared_distances, size_t max_searched_leaf_number) const
 {
 
     size_t epoch = 0;
@@ -664,9 +663,9 @@ bool KD_tree::bbf_kNN_query(const vector<double>  query_point, const int K, vect
 
     priority_queue<distance_index> priority_points;
 
-    while(!priority_unexplored_points.empty() && epoch < max_searched_bin_number)
+    while(!priority_unexplored_points.empty() && epoch < max_searched_leaf_number)
     {
-        TreeNode_distance td=priority_unexplored_points.top();
+        TreeNode_distance td = priority_unexplored_points.top();
         cur_node = td.node_;
         priority_unexplored_points.pop();
 
@@ -674,8 +673,7 @@ bool KD_tree::bbf_kNN_query(const vector<double>  query_point, const int K, vect
         cur_node = bbf_explore_to_leaf(query_point, cur_node, priority_unexplored_points);
 
         // find k nearest neighbors
-
-        for(int i=0; i<cur_node->data_index_.size(); i++)
+        for(int i=0; i < cur_node->data_index_.size(); i++)
         {
             int index = cur_node->data_index_[i];
             const vector<double> & point = data_[index];
