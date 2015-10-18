@@ -32,7 +32,7 @@ int main(int argc, const char * argv[])
 
     KD_tree_node* root;
     KD_tree tree;
-    int max_leaf_size =4;
+    int max_leaf_size =2;
     tree.create_tree(dataset,max_leaf_size);
 
     vector<int> indices1;
