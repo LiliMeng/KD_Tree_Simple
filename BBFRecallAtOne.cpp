@@ -2,6 +2,7 @@
  * File:  BBFRecallAtOne.cpp
  * Author Lili Meng (lilimeng1103@gmail.com)
  * The Recall of BBF Approximate Search at 1 nearest neighbor for 10 query points from a dataset of 1000 points
+ * Running result: 0.926
  */
 
 #include <iostream>
