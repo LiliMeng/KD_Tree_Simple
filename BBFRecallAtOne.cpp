@@ -2,7 +2,6 @@
  * File:  BBFRecallAtOne.cpp
  * Author Lili Meng (lilimeng1103@gmail.com)
  * The Recall of BBF Approximate Search at 1 nearest neighbor for 10 query points from a dataset of 1000 points
- * max_Epoch is from 1 to 1000
  */
 
 #include <iostream>
@@ -47,9 +46,9 @@ int main(int argc, const char * argv[])
     vector<int> indices2;
     vector<double> squared_distances2;
 
-    float correct_number[1001][10];
-    float RecallAtOne[1001];
-    float sum[1001];
+    double correct_number[1001][10];
+    double RecallAtOne[1001];
+    double sum[1001];
 
 
    for(int max_searched_leaf_number=1; max_searched_leaf_number<=1000; max_searched_leaf_number++)
@@ -65,9 +64,9 @@ int main(int argc, const char * argv[])
             sum[max_searched_leaf_number]+=correct_number[max_searched_leaf_number][j];
         }
 
-        RecallAtOne[max_searched_leaf_number]=sum[max_searched_leaf_number]/10.0;
-        cout<<max_searched_leaf_number<<"\t"<<setprecision(3)<<RecallAtOne[max_searched_leaf_number]<<endl;
-        fout<<max_searched_leaf_number<<"\t"<<setprecision(3)<<RecallAtOne[max_searched_leaf_number]<<endl;
+        RecallAtOne[max_searched_leaf_number]=sum[max_searched_leaf_number]/10.000;
+        cout<<max_searched_leaf_number<<"\t"<<setprecision(5)<<RecallAtOne[max_searched_leaf_number]<<endl;
+        fout<<max_searched_leaf_number<<"\t"<<setprecision(5)<<RecallAtOne[max_searched_leaf_number]<<endl;
    // cout<<"The Recall of BBF Approximate Search at 1 nearest neighbor for 10 query points from a dataset of 1000 points is: "<<setprecision(3)<<RecallAtOne<<endl;
     }
 
