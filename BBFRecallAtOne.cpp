@@ -2,7 +2,6 @@
  * File:  BBFRecallAtOne.cpp
  * Author Lili Meng (lilimeng1103@gmail.com)
  * The Recall of BBF Approximate Search at 1 nearest neighbor for 10 query points from a dataset of 1000 points
- * Running result: 0.926
  */
 
 #include <iostream>
@@ -47,37 +46,33 @@ int main(int argc, const char * argv[])
        // cout<<trueSearch[i]<<endl;
 
     }
-
+    ofstream fout("RecallAtOne.csv");
     vector<int> indices2;
     vector<double> squared_distances2;
 
-    vector<double> correct_number(10);
+    float correct_number[1001][10];
+    float RecallAtOne[1001];
+    float sum[1001];
 
 
-
-    for(int max_searched_leaf_number=1; max_searched_leaf_number<=1000; max_searched_leaf_number++)
-    //for(int max_searched_leaf_number=10; max_searched_leaf_number<1000; max_searched_leaf_number++)
+   for(int max_searched_leaf_number=1; max_searched_leaf_number<=1000; max_searched_leaf_number++)
     /** If the max_epoch is equal or larger than the size of all leaves, the result is the same with the exact kNN search**/
-   {
+    {
         for(int j=0; j<query_point_dataset.size(); j++)
         {
             tree.bbf_kNN_query(query_point_dataset[j], 1, indices2, squared_distances2, max_searched_leaf_number);
             if(indices2[0]==trueSearch[j])
             {
-                correct_number[j]++;
+                correct_number[max_searched_leaf_number][j]++;
             }
+            sum[max_searched_leaf_number]+=correct_number[max_searched_leaf_number][j];
         }
-   }
 
-   double sum=0.0;
-   for(int i=0; i<query_point_dataset.size(); i++)
-   {
-        sum+=correct_number[i];
-   }
-    double RecallAtOne=sum/10;
-    cout<<"The Recall of BBF Approximate Search at 1 nearest neighbor for 10 query points from a dataset of 1000 points is: "<<setprecision(3)<<RecallAtOne/1000<<endl;
-
-
+        RecallAtOne[max_searched_leaf_number]=sum[max_searched_leaf_number]/10.0;
+        cout<<max_searched_leaf_number<<"\t"<<setprecision(3)<<RecallAtOne[max_searched_leaf_number]<<endl;
+        fout<<max_searched_leaf_number<<"\t"<<setprecision(3)<<RecallAtOne[max_searched_leaf_number]<<endl;
+   // cout<<"The Recall of BBF Approximate Search at 1 nearest neighbor for 10 query points from a dataset of 1000 points is: "<<setprecision(3)<<RecallAtOne<<endl;
+    }
 
  return 0;
 }
