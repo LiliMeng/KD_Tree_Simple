@@ -30,14 +30,11 @@
 
 using namespace std;
 
-
-
 class Bounding_box
 {
-private:
+public:
     vector<double> min_point_;
     vector<double> max_point_;
-public:
     Bounding_box()
     {
     }
@@ -51,27 +48,26 @@ public:
     double distance_sq(const vector<double> & point) const
     {
         double sum_sq = 0;
-        unsigned long dim = point.size();
-        assert( dim == min_point_.size() && dim == max_point_.size() );
+        unsigned long dim= point.size();
+        assert(dim ==min_point_.size() && dim == max_point_.size());
 
-        for ( unsigned int i=0; i<dim; ++i )
+        for(unsigned int i=0; i<dim; ++i)
         {
             double x_min = min_point_[i];
             double x_max = max_point_[i];
             double x = point[i];
-            if ( x < x_min ) {
-                sum_sq += ( x_min - x ) * (x_min - x);
-            }
-            else if ( x > x_max )
+            if(x < x_min)
             {
-                sum_sq += ( x_max - x ) * (x_max - x);
+                sum_sq +=(x_min -x) * (x_min-x);
+            }
+            else if(x > x_max)
+            {
+                sum_sq +=(x_max-x) * (x_max -x);
             }
             else
             {
                 sum_sq =0;
             }
-
-
         }
         return sum_sq;
     }
@@ -90,19 +86,19 @@ public:
     KD_tree_node *right_node_;
     vector<int> data_index_;
 
-
     KD_tree_node()
     {
         level_ = 0;
         split_dim_ = 0;
         split_value_ = 0.0;
         is_leaf_ = false;
-        left_node_ = NULL;
-        right_node_ = NULL;
+        left_node_ =NULL;
+        right_node_ =NULL;
     }
 
 };
 
+/**For storing the KD_tree_node index and the distance from node to node **/
 class distance_index
 {
 public:
@@ -127,6 +123,7 @@ public:
 
 };
 
+/**For storing the tree node and the distance from node to node **/
 class TreeNode_distance
 {
 public:
@@ -135,7 +132,7 @@ public:
 
     TreeNode_distance(KD_tree_node* node, double distance)
     {
-        node_=node;
+        node_ = node;
         distance_ = distance;
     }
 
@@ -144,13 +141,12 @@ public:
         return this->distance_ < other.distance_;
     }
 
-     bool operator > (const TreeNode_distance & other) const
+    bool operator > (const TreeNode_distance & other) const
     {
         return this->distance_ > other.distance_;
     }
 
 };
-
 
 class KD_tree
 {
@@ -160,19 +156,16 @@ public:
     size_t dimension() const;
     size_t size() const;
 
-
     bool read_tree_from_file(const char* file_name, KD_tree_node* &root);
     bool empty() const;
 
     bool create_tree(const vector<vector<double> > & data, unsigned max_leaf_size);
     bool save_tree_to_file(const char* file_name);
-    bool kNN_query(const vector<double> & query_point, const int K,
-               vector<int> & indices,
-               vector<double> & squared_distances) const;
+    bool kNN_query(const vector<double> & query_point, const int K, vector<int> & indices, vector<double> & squared_distances) const;
+    bool bbf_kNN_query(const vector<double> query_point, const int K, vector<int> & indices, vector<double> & squared_distances, size_t max_searched_leaf_number) const;
 
-    bool bbf_kNN_query(const vector<double> query_point, const int K,
-               vector<int> & indices,
-               vector<double> & squared_distances, size_t max_searched_leaf_number) const;
+    // squared of distance
+    static double distance_sq(const vector<double> & data0, const vector<double> & data1);
 
 
 private:
@@ -211,11 +204,6 @@ private:
 
     Bounding_box build_bounding_box(const vector<int> & indices) const;
 
-
-
-public:
-    // squared of distance fro brute-force double check
-    static double distance_sq(const vector<double> & data0, const vector<double> & data1);
 };
 
 KD_tree::KD_tree()
@@ -321,6 +309,17 @@ bool KD_tree::create_tree(const vector<vector<double> >& data, unsigned max_leaf
 bool KD_tree::build_tree(const vector<int> & indices, KD_tree_node* & node, unsigned level)
 {
     assert(node);
+
+    if(level >= max_level_ || indices.size() <= max_leaf_size_)
+    {
+        node->is_leaf_ = true;
+        node->level_ = level;
+        node->data_index_ = indices;
+        node->box_ = this->build_bounding_box(indices);
+        return true;
+    }
+    assert(node);
+
     if(level >= max_level_ || indices.size() <=max_leaf_size_)
     {
         node->is_leaf_ = true;
@@ -330,6 +329,7 @@ bool KD_tree::build_tree(const vector<int> & indices, KD_tree_node* & node, unsi
         return true;
     }
     node->level_=level;
+    node->data_index_=indices;
 
     // randomly select split dimensions
     int split_dim = rand() % dim_;
@@ -418,7 +418,7 @@ bool KD_tree::save_tree_to_file(const char* file_name)
         return false;
     }
 
-    fprintf(pf, "Level\t dataIndex\t isLeaf\t split_dim_\t split_value_\t\n");
+    fprintf(pf, "Level\t dataIndex\t isLeaf\t split_dim_\t split_value_\n");
 
     save_tree_helper(pf, root_);
     fclose(pf);
@@ -434,8 +434,7 @@ Bounding_box KD_tree::build_bounding_box(const vector<int> & indices) const
     for(unsigned int i=1; i< indices.size(); ++i)
     {
         vector<double> point = data_[indices[i]];
-
-        for(unsigned int j=0; j<point.size(); ++j)
+        for(unsigned int j=0; j< point.size(); ++j)
         {
             if(point[j] < min_point[j])
             {
@@ -447,6 +446,7 @@ Bounding_box KD_tree::build_bounding_box(const vector<int> & indices) const
                 max_point[j] = point[j];
             }
         }
+
 
     }
 
@@ -469,6 +469,7 @@ const KD_tree_node* KD_tree::get_leaf_node(const vector<double> & query_point, c
     if(value < split_value && node->left_node_)
     {
         return this->get_leaf_node(query_point, node->left_node_);
+
     }
     else if(node->right_node_)
     {
@@ -609,7 +610,7 @@ bool KD_tree::explore_leaf_node(const vector<double>& query_point, const int K,
     return true;
 }
 
-KD_tree_node* KD_tree::bbf_explore_to_leaf(vector<double> query_point, KD_tree_node* root,  min_PQ& unexplored_minPQ) const
+KD_tree_node* KD_tree::bbf_explore_to_leaf(vector<double> query_point, KD_tree_node* root, min_PQ& unexplored_minPQ) const
 {
     KD_tree_node* unexplored_node;   // unexplored KD_tree_node*
     KD_tree_node* cur_node = root;
@@ -623,7 +624,6 @@ KD_tree_node* KD_tree::bbf_explore_to_leaf(vector<double> query_point, KD_tree_n
         dim = cur_node->split_dim_;
         split_value = cur_node->split_value_;
 
-
         // go to a child and preserve the other
         if(query_point[dim] < split_value)
         {
@@ -636,9 +636,18 @@ KD_tree_node* KD_tree::bbf_explore_to_leaf(vector<double> query_point, KD_tree_n
             cur_node = cur_node->right_node_;
         }
 
+        vector<int> indices;
+        for(int i=0; i<unexplored_node->data_index_.size(); i++)
+        {
+            indices.push_back(unexplored_node->data_index_[i]);
+        }
+
+        Bounding_box bb = build_bounding_box(indices);
+        double dist = bb.distance_sq(query_point);
+
         if(unexplored_node!=NULL)
         {
-            TreeNode_distance di(unexplored_node, fabs(query_point[unexplored_node->split_dim_]-unexplored_node->split_value_));
+            TreeNode_distance di(unexplored_node, dist);
             unexplored_minPQ.push(di);
         }
     }
@@ -659,6 +668,7 @@ bool KD_tree::bbf_kNN_query(const vector<double>  query_point, const int K, vect
     min_PQ priority_unexplored_points;
 
     TreeNode_distance di(root_, 0);
+
     priority_unexplored_points.push(di);
 
     priority_queue<distance_index> priority_points;
@@ -679,7 +689,7 @@ bool KD_tree::bbf_kNN_query(const vector<double>  query_point, const int K, vect
             const vector<double> & point = data_[index];
             double dist_sq = KD_tree::distance_sq(point, query_point);
 
-            if(priority_points.size() < K || dist_sq < max_distance)
+            if(priority_points.size() <K || dist_sq < max_distance)
             {
                 distance_index di(index, dist_sq);
                 priority_points.push(di);
