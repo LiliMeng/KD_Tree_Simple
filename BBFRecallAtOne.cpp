@@ -2,8 +2,7 @@
  * File:  BBFRecallAtOne.cpp
  * Author Lili Meng (lilimeng1103@gmail.com)
  * The Recall of BBF Approximate Search at 1 nearest neighbor for 10 query points from a dataset of 1000 points
- * Cannot use right now!!
- * /
+ */
 
 #include <iostream>
 #include "KD_tree.h"
@@ -40,7 +39,7 @@ int main(int argc, const char * argv[])
         tree.kNN_query(query_point_dataset[i], K, indices1, squared_distances1);
         //cout<<indices1[0]<<endl;
         trueSearch[i]=indices1[0];
-       // cout<<trueSearch[i]<<endl;
+        cout<<trueSearch[i]<<endl;
 
     }
     ofstream fout("RecallAtOne.csv");
